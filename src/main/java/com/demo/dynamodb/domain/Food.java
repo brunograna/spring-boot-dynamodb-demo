@@ -1,13 +1,14 @@
 package com.demo.dynamodb.domain;
 
 import com.demo.dynamodb.config.DynamoDbEntity;
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.springframework.stereotype.Component;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
 import software.amazon.awssdk.services.dynamodb.model.*;
 
 import java.util.UUID;
 
+@Component
 @DynamoDbBean
 public class Food implements DynamoDbEntity {
 
@@ -22,10 +23,6 @@ public class Food implements DynamoDbEntity {
         this.id = id;
         this.name = name;
         this.weight = weight;
-    }
-
-    public static DynamoDbEntity config() {
-        return new Food();
     }
 
     @DynamoDbPartitionKey
@@ -53,27 +50,24 @@ public class Food implements DynamoDbEntity {
         this.weight = weight;
     }
 
-    @Override
-    public String toString() {
-        return "Food{" +
-                "id='" + id + '\'' +
-                ", name='" + name + '\'' +
-                ", weight=" + weight +
-                '}';
-    }
-
     public Food forCreation() {
         return new Food(UUID.randomUUID().toString(), this.name, this.weight);
     }
 
-    @Override
-    @JsonIgnore
-    public String getTableName() {
-        return "dynamodb-foods-table";
+    public Food update(Food updatedFood) {
+        return new Food(this.id, updatedFood.getName(), updatedFood.getWeight());
+    }
+
+    public static DynamoDbEntity config() {
+        return new Food();
     }
 
     @Override
-    @JsonIgnore
+    public String getTableName() {
+        return "dynamodb-foods-tableS";
+    }
+
+    @Override
     public CreateTableRequest getTableRequest() {
         return CreateTableRequest.builder()
                 .attributeDefinitions(
@@ -93,7 +87,12 @@ public class Food implements DynamoDbEntity {
                 .build();
     }
 
-    public Food update(Food updatedFood) {
-        return new Food(this.id, updatedFood.getName(), updatedFood.getWeight());
+    @Override
+    public String toString() {
+        return "Food{" +
+                "id='" + id + '\'' +
+                ", name='" + name + '\'' +
+                ", weight=" + weight +
+                '}';
     }
 }

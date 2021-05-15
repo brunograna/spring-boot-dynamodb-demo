@@ -1,6 +1,5 @@
 package com.demo.dynamodb.config;
 
-import com.demo.dynamodb.domain.Food;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -24,9 +23,15 @@ public class DynamoDbConfig implements CommandLineRunner {
     private final URI dynamodbUri;
     private final List<DynamoDbEntity> entities;
 
-    public DynamoDbConfig(@Value("${aws.dynamodb.uri}") final String dynamodbStringUri) {
+    public DynamoDbConfig(@Value("${aws.dynamodb.uri}") final String dynamodbStringUri,
+                          List<DynamoDbEntity> entities) {
+
+        if (dynamodbStringUri == null || dynamodbStringUri.isBlank())
+            throw new IllegalArgumentException(
+                    "DynamoDb Uri is required, the java property aws.dynamodb.uri must be set");
+
         this.dynamodbUri = URI.create(dynamodbStringUri);
-        this.entities = List.of(Food.config());
+        this.entities = entities;
     }
 
     public void createTables(DynamoDbClient ddb) {
@@ -47,6 +52,15 @@ public class DynamoDbConfig implements CommandLineRunner {
                 DynamoDbWaiter dbWaiter = ddb.waiter();
 
                 var waiterResponse = dbWaiter.waitUntilTableExists(tableRequest);
+
+                waiterResponse.matched()
+                        .exception()
+                        .ifPresent(exception -> {
+                            logger.error("Table '{}' not created, details: {}",
+                                    t.getTableName(), exception);
+                            System.exit(-1);
+                        });
+
                 waiterResponse.matched()
                         .response()
                         .ifPresentOrElse((response ->

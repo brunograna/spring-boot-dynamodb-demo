@@ -1,6 +1,6 @@
 logging:
   level:
-    software.amazon.awssdk: DEBUG
+    software.amazon.awssdk: INFO
 aws:
   dynamodb:
     uri: http://localhost:8000
