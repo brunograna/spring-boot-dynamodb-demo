@@ -62,8 +62,8 @@ public class Food implements DynamoDbEntity {
                 '}';
     }
 
-    public void generateId() {
-        this.id = UUID.randomUUID().toString();
+    public Food forCreation() {
+        return new Food(UUID.randomUUID().toString(), this.name, this.weight);
     }
 
     @Override
@@ -91,5 +91,9 @@ public class Food implements DynamoDbEntity {
                         .build())
                 .tableName(this.getTableName())
                 .build();
+    }
+
+    public Food update(Food updatedFood) {
+        return new Food(this.id, updatedFood.getName(), updatedFood.getWeight());
     }
 }

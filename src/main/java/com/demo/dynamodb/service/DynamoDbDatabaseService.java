@@ -1,8 +1,7 @@
 package com.demo.dynamodb.service;
 
+import com.demo.dynamodb.controller.NotFoundException;
 import com.demo.dynamodb.domain.Food;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
@@ -16,29 +15,30 @@ import java.util.stream.Collectors;
 @Service
 public class DynamoDbDatabaseService implements DatabaseService {
 
-    private static final Logger logger = LoggerFactory.getLogger(DynamoDbDatabaseService.class);
-
-    private final DynamoDbEnhancedClient dynamoDbEnhancedClient;
     private final DynamoDbTable<Food> foodTable;
 
     public DynamoDbDatabaseService(final DynamoDbEnhancedClient ddb) {
-        this.dynamoDbEnhancedClient = ddb;
         this.foodTable = ddb.table(Food.config().getTableName(), TableSchema.fromBean(Food.class));
     }
 
     @Override
     public String save(Food food) {
-        food.generateId();
-        foodTable.putItem(food);
-
-        logger.info("food created -> {}", food);
-
-        return food.getId();
+        var creationFood = food.forCreation();
+        foodTable.putItem(creationFood);
+        return creationFood.getId();
     }
 
     @Override
-    public void update(String id, Food updatedFood) {
+    public void update(String id, Food updatedFood) throws NotFoundException {
+        var item = Optional.ofNullable(
+                                this.foodTable.getItem(
+                                        Key.builder()
+                                            .partitionValue(id)
+                                            .build()
+                                )
+                        ).orElseThrow(() -> new NotFoundException("Food " + id + " not found"));
 
+        this.foodTable.updateItem(item.update(updatedFood));
     }
 
     @Override
