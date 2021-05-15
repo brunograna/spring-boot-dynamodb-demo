@@ -1,6 +1,7 @@
 package com.demo.dynamodb.domain;
 
 import com.demo.dynamodb.config.DynamoDbEntity;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
 import software.amazon.awssdk.services.dynamodb.model.*;
@@ -66,11 +67,13 @@ public class Food implements DynamoDbEntity {
     }
 
     @Override
+    @JsonIgnore
     public String getTableName() {
         return "dynamodb-foods-table";
     }
 
     @Override
+    @JsonIgnore
     public CreateTableRequest getTableRequest() {
         return CreateTableRequest.builder()
                 .attributeDefinitions(

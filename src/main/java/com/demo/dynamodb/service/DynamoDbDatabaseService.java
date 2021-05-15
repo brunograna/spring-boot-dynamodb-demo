@@ -10,6 +10,7 @@ import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class DynamoDbDatabaseService implements DatabaseService {
@@ -51,6 +52,9 @@ public class DynamoDbDatabaseService implements DatabaseService {
 
     @Override
     public List<Food> findAll() {
-        return null;
+        return this.foodTable.scan()
+                .items()
+                .stream()
+                .collect(Collectors.toList());
     }
 }
