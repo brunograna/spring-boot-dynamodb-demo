@@ -64,7 +64,7 @@ public class Food implements DynamoDbEntity {
 
     @Override
     public String getTableName() {
-        return "dynamodb-foods-tableS";
+        return "foods-table";
     }
 
     @Override
