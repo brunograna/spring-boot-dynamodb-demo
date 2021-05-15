@@ -43,7 +43,11 @@ public class DynamoDbDatabaseService implements DatabaseService {
 
     @Override
     public void delete(String id) {
-
+        this.foodTable.deleteItem(
+                Key.builder()
+                        .partitionValue(id)
+                        .build()
+        );
     }
 
     @Override

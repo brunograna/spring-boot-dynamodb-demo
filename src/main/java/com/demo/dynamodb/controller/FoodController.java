@@ -30,16 +30,20 @@ public class FoodController {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    @PutMapping("id")
+    @PutMapping("{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void update(@PathVariable("id") String id, @RequestBody Food updatedFood) {
         this.databaseService.update(id, updatedFood);
     }
 
-    @DeleteMapping("id")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteById(@PathVariable("id") String id) {
-        this.databaseService.delete(id);
+    @DeleteMapping("{id}")
+    public ResponseEntity<Object> deleteById(@PathVariable("id") String id) {
+        return this.databaseService.findById(id)
+                .map(food -> {
+                    this.databaseService.delete(id);
+                    return ResponseEntity.noContent().build();
+                })
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PostMapping
