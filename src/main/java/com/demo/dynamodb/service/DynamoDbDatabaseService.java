@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
+import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 
 import java.util.List;
@@ -47,7 +48,13 @@ public class DynamoDbDatabaseService implements DatabaseService {
 
     @Override
     public Optional<Food> findById(String id) {
-        return Optional.empty();
+        return Optional.ofNullable(
+                this.foodTable.getItem(
+                        Key.builder()
+                                .partitionValue(id)
+                                .build()
+                )
+        );
     }
 
     @Override

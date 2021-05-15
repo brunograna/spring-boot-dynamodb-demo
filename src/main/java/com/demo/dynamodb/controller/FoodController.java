@@ -23,7 +23,7 @@ public class FoodController {
         return this.databaseService.findAll();
     }
 
-    @GetMapping("id")
+    @GetMapping("{id}")
     public ResponseEntity<Food> findById(@PathVariable("id") String id) {
         return this.databaseService.findById(id)
                 .map(ResponseEntity::ok)
