@@ -1,17 +1,31 @@
 package com.demo.dynamodb.domain;
 
-import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbAttribute;
+import com.demo.dynamodb.config.DynamoDbEntity;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
+import software.amazon.awssdk.services.dynamodb.model.*;
 
 import java.util.UUID;
 
 @DynamoDbBean
-public class Food {
+public class Food implements DynamoDbEntity {
 
     private String id;
     private String name;
     private Double weight;
+
+    public Food() {
+    }
+
+    public Food(String id, String name, Double weight) {
+        this.id = id;
+        this.name = name;
+        this.weight = weight;
+    }
+
+    public static DynamoDbEntity config() {
+        return new Food();
+    }
 
     @DynamoDbPartitionKey
     public String getId() {
@@ -49,5 +63,30 @@ public class Food {
 
     public void generateId() {
         this.id = UUID.randomUUID().toString();
+    }
+
+    @Override
+    public String getTableName() {
+        return "dynamodb-foods-table";
+    }
+
+    @Override
+    public CreateTableRequest getTableRequest() {
+        return CreateTableRequest.builder()
+                .attributeDefinitions(
+                        AttributeDefinition.builder()
+                                .attributeName("id")
+                                .attributeType(ScalarAttributeType.S)
+                                .build())
+                .keySchema(KeySchemaElement.builder()
+                        .attributeName("id")
+                        .keyType(KeyType.HASH)
+                        .build())
+                .provisionedThroughput(ProvisionedThroughput.builder()
+                        .readCapacityUnits(10L)
+                        .writeCapacityUnits(10L)
+                        .build())
+                .tableName(this.getTableName())
+                .build();
     }
 }

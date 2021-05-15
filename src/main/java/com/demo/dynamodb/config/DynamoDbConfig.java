@@ -3,70 +3,67 @@ package com.demo.dynamodb.config;
 import com.demo.dynamodb.domain.Food;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import software.amazon.awssdk.core.waiters.WaiterResponse;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
-import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
-import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
-import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
-import software.amazon.awssdk.services.dynamodb.model.*;
+import software.amazon.awssdk.services.dynamodb.model.DescribeTableRequest;
+import software.amazon.awssdk.services.dynamodb.model.ResourceNotFoundException;
 import software.amazon.awssdk.services.dynamodb.waiters.DynamoDbWaiter;
 
 import java.net.URI;
+import java.util.List;
 
 @Configuration
-public class DynamoDbConfig {
+public class DynamoDbConfig implements CommandLineRunner {
 
     private final Logger logger = LoggerFactory.getLogger(DynamoDbConfig.class);
-    private static final String FOODS_TABLE = "dynamodb-foods";
 
-    @Bean
-    public DynamoDbTable<Food> foodTable(DynamoDbEnhancedClient ddb) {
-        return ddb.table(FOODS_TABLE, TableSchema.fromBean(Food.class));
+    private final URI dynamodbUri;
+    private final List<DynamoDbEntity> entities;
+
+    public DynamoDbConfig(@Value("${aws.dynamodb.uri}") final String dynamodbStringUri) {
+        this.dynamodbUri = URI.create(dynamodbStringUri);
+        this.entities = List.of(Food.config());
     }
 
-    public void createFoodTable(DynamoDbClient ddb) {
-        DynamoDbWaiter dbWaiter = ddb.waiter();
+    public void createTables(DynamoDbClient ddb) {
+        this.entities.forEach(t -> {
+            var tableRequest = DescribeTableRequest.builder()
+                    .tableName(t.getTableName())
+                    .build();
 
-        var tableRequest = DescribeTableRequest.builder()
-                .tableName(FOODS_TABLE)
-                .build();
+            try {
+                var response = ddb.describeTable(tableRequest);
+                logger.info("Table '{}' existence verified", response.table().tableName());
 
-        // Wait until the Amazon DynamoDB table is created
-        var waiterResponse =  dbWaiter.waitUntilTableExists(tableRequest);
-        waiterResponse.matched().response()
-                .ifPresentOrElse((r) -> {
-                    logger.info("Table already exists: {}", r.table().tableName());
-                }, () -> {
-                    var request = CreateTableRequest.builder()
-                            .attributeDefinitions(
-                                    AttributeDefinition.builder()
-                                            .attributeName("id")
-                                            .attributeType(ScalarAttributeType.S)
-                                            .build())
-                            .keySchema(KeySchemaElement.builder()
-                                    .attributeName("id")
-                                    .keyType(KeyType.HASH)
-                                    .build())
-                            .provisionedThroughput(ProvisionedThroughput.builder()
-                                    .readCapacityUnits(new Long(10))
-                                    .writeCapacityUnits(new Long(10))
-                                    .build())
-                            .tableName(FOODS_TABLE)
-                            .build();
+            } catch (ResourceNotFoundException e) {
+                logger.warn("Table '{}' not exists, creating...", t.getTableName());
 
-                    var r = ddb.createTable(request);
+                ddb.createTable(t.getTableRequest());
 
-                    logger.info("Table created: {}", r.tableDescription().tableName());
-                });
+                DynamoDbWaiter dbWaiter = ddb.waiter();
+
+                var waiterResponse = dbWaiter.waitUntilTableExists(tableRequest);
+                waiterResponse.matched()
+                        .response()
+                        .ifPresentOrElse((response ->
+                                logger.info("Table '{}' created successfully", response.table().tableName())
+                        ), () -> {
+                            logger.error("Table '{}' not created, verify your connection with the database",
+                                    t.getTableName());
+                            System.exit(-1);
+                        });
+            }
+        });
     }
 
     @Bean
     public DynamoDbClient dynamoDbClient() {
         return DynamoDbClient.builder()
-                .endpointOverride(URI.create("http://localhost:8000"))
+                .endpointOverride(this.dynamodbUri)
                 .build();
     }
 
@@ -75,5 +72,10 @@ public class DynamoDbConfig {
         return DynamoDbEnhancedClient.builder()
                 .dynamoDbClient(ddb)
                 .build();
+    }
+
+    @Override
+    public void run(String... args) {
+        this.createTables(dynamoDbClient());
     }
 }

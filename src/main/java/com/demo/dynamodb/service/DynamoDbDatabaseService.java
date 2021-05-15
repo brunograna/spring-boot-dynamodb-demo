@@ -19,10 +19,9 @@ public class DynamoDbDatabaseService implements DatabaseService {
     private final DynamoDbEnhancedClient dynamoDbEnhancedClient;
     private final DynamoDbTable<Food> foodTable;
 
-    public DynamoDbDatabaseService(final DynamoDbEnhancedClient dynamoDbEnhancedClient,
-                                   final DynamoDbTable<Food> foodTable) {
-        this.dynamoDbEnhancedClient = dynamoDbEnhancedClient;
-        this.foodTable = foodTable;
+    public DynamoDbDatabaseService(final DynamoDbEnhancedClient ddb) {
+        this.dynamoDbEnhancedClient = ddb;
+        this.foodTable = ddb.table(Food.config().getTableName(), TableSchema.fromBean(Food.class));
     }
 
     @Override
