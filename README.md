@@ -23,7 +23,7 @@
 ## :dart: Development objective
 
 - Java 11 with Spring Boot 2.4.5 and DynamoDB
-- Available CRUD operations on restfull endpoints
+- CRUD operations on restfull endpoints
 
 ## :file_folder: Resources
 
