@@ -17,6 +17,7 @@
 ## :rocket: Project Features
 
 * CRUD on DynamoDB
+* DynamoDB integration tests using [Java TestContainer](https://github.com/testcontainers/testcontainers-java) _(docker needed)_
 
 :mag: Download the project and test by yourself.
 
@@ -24,6 +25,7 @@
 
 - Java 11 with Spring Boot 2.4.5 and DynamoDB
 - CRUD operations on restfull endpoints
+- Tests using [TestContainer](https://github.com/testcontainers/testcontainers-java)
 
 ## :file_folder: Resources
 
