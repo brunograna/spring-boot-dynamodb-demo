@@ -1,6 +1,6 @@
 package com.demo.dynamodb.controller;
 
-import com.demo.dynamodb.domain.Food;
+import com.demo.dynamodb.domain.Garage;
 import com.demo.dynamodb.service.DatabaseService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,24 +11,24 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/dynamodb/v1/foods")
-public class FoodController {
+@RequestMapping("/dynamodb/v1/garages")
+public class GarageController {
 
-    private static final Logger logger = LoggerFactory.getLogger(FoodController.class);
-    private final DatabaseService<Food> databaseService;
+    private static final Logger logger = LoggerFactory.getLogger(GarageController.class);
+    private final DatabaseService<Garage> databaseService;
 
-    public FoodController(final DatabaseService<Food> databaseService) {
+    public GarageController(final DatabaseService<Garage> databaseService) {
         this.databaseService = databaseService;
     }
 
     @GetMapping
-    public List<Food> findAll() {
+    public List<Garage> findAll() {
         logger.info("findAll - executed");
         return this.databaseService.findAll();
     }
 
     @GetMapping("{id}")
-    public ResponseEntity<Food> findById(@PathVariable("id") String id) {
+    public ResponseEntity<Garage> findById(@PathVariable("id") String id) {
         logger.info("findById - executed");
         return this.databaseService.findById(id)
                 .map(ResponseEntity::ok)
@@ -37,16 +37,16 @@ public class FoodController {
 
     @PutMapping("{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void update(@PathVariable("id") String id, @RequestBody Food updatedFood) throws NotFoundException {
+    public void update(@PathVariable("id") String id, @RequestBody Garage updatedGarage) throws NotFoundException {
         logger.info("update - executed");
-        this.databaseService.update(id, updatedFood);
+        this.databaseService.update(id, updatedGarage);
     }
 
     @DeleteMapping("{id}")
     public ResponseEntity<Object> deleteById(@PathVariable("id") String id) {
         logger.info("deleteById - executed");
         return this.databaseService.findById(id)
-                .map(food -> {
+                .map(Garage -> {
                     this.databaseService.delete(id);
                     return ResponseEntity.noContent().build();
                 })
@@ -55,14 +55,14 @@ public class FoodController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public void save(@RequestBody Food food) {
+    public void save(@RequestBody Garage garage) {
         logger.info("save - executed");
-        this.databaseService.save(food);
+        this.databaseService.save(garage);
     }
 
 
     @ExceptionHandler(NotFoundException.class)
-    public ResponseEntity<Food> notFoundExceptionHandler(NotFoundException e) {
+    public ResponseEntity<Garage> notFoundExceptionHandler(NotFoundException e) {
         logger.error("notFoundExceptionHandler - message: {}", e.getMessage());
         return ResponseEntity.notFound().build();
     }

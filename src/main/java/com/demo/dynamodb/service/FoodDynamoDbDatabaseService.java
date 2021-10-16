@@ -13,11 +13,11 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
-public class DynamoDbDatabaseService implements DatabaseService {
+public class FoodDynamoDbDatabaseService implements DatabaseService<Food> {
 
     private final DynamoDbTable<Food> foodTable;
 
-    public DynamoDbDatabaseService(final DynamoDbEnhancedClient ddb) {
+    public FoodDynamoDbDatabaseService(final DynamoDbEnhancedClient ddb) {
         this.foodTable = ddb.table(Food.config().getTableName(), TableSchema.fromBean(Food.class));
     }
 
