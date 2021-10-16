@@ -1,12 +1,17 @@
 package com.demo.dynamodb.config;
 
+import com.demo.dynamodb.domain.Food;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProviderChain;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
+import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
+import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.DescribeTableRequest;
 import software.amazon.awssdk.services.dynamodb.model.ResourceNotFoundException;
@@ -77,6 +82,7 @@ public class DynamoDbConfig implements CommandLineRunner {
     @Bean
     public DynamoDbClient dynamoDbClient() {
         return DynamoDbClient.builder()
+                .region(Region.US_WEST_2)
                 .endpointOverride(this.dynamodbUri)
                 .build();
     }
@@ -86,6 +92,11 @@ public class DynamoDbConfig implements CommandLineRunner {
         return DynamoDbEnhancedClient.builder()
                 .dynamoDbClient(ddb)
                 .build();
+    }
+
+    @Bean
+    public DynamoDbTable<Food> foodDynamoDbTable(DynamoDbEnhancedClient ddb) {
+        return ddb.table(Food.config().getTableName(), TableSchema.fromBean(Food.class));
     }
 
     @Override
